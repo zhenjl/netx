@@ -19,6 +19,7 @@ import "fmt"
 func ExampleParseIP() {
 	ips, _ := ParseIP("10.1.1,2.1,2")
 	fmt.Println(len(ips))
+
 	// Output: 4
 	// err should be nil, and ips should contain 10.1.1.1, 10.1.1.2, 10.1.2.1 and 10.1.2.2
 }

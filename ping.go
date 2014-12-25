@@ -25,8 +25,12 @@
 package net
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/gob"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"runtime"
@@ -108,6 +112,113 @@ type PingResult struct {
 
 	// Any errors encountered
 	Err error
+}
+
+func (this *PingResult) GobDecode(p []byte) error {
+	buf := bytes.NewBuffer(p)
+	dec := gob.NewDecoder(buf)
+
+	if err := dec.Decode(&this.Src); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.Dst); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.TOS); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.TTL); err != nil {
+		return err
+	}
+
+	//if err := dec.Decode(&this.Type); err != nil {
+	//	return err
+	//}
+
+	if err := dec.Decode(&this.Code); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.ID); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.Seq); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.Size); err != nil {
+		return err
+	}
+
+	if err := dec.Decode(&this.RTT); err != nil {
+		return err
+	}
+
+	var errstr string
+	if err := dec.Decode(&errstr); err != nil && err != io.EOF {
+		return err
+	} else if err != io.EOF {
+		this.Err = errors.New(errstr)
+	}
+
+	return nil
+}
+
+func (this PingResult) GobEncode() ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+
+	if err := enc.Encode(this.Src); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.Dst); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.TOS); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.TTL); err != nil {
+		return nil, err
+	}
+
+	//if err := enc.Encode(this.Type); err != nil {
+	//	return nil, err
+	//}
+
+	if err := enc.Encode(this.Code); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.ID); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.Seq); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.Size); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(this.RTT); err != nil {
+		return nil, err
+	}
+
+	if this.Err != nil {
+		if err := enc.Encode(this.Err.Error()); err != nil {
+			return nil, err
+		}
+	}
+
+	return buf.Bytes(), nil
 }
 
 func (this PingResult) String() string {
@@ -201,7 +312,7 @@ type Pinger struct {
 // Only a single Start can be called at a time. If the second call to Start is made,
 // and error will be returned.
 func (this *Pinger) Start() (<-chan *PingResult, error) {
-	if !atomic.CompareAndSwapInt64(&this.pid, 0, int64(os.Getpid())) {
+	if !atomic.CompareAndSwapInt64(&this.pid, 0, int64(os.Getpid()&0xffff)) {
 		return nil, fmt.Errorf("ping/Start: Pinger already running")
 	}
 
@@ -267,7 +378,7 @@ func (this *Pinger) Stop() {
 		this.done = nil
 		this.reschan = nil
 
-		atomic.CompareAndSwapInt64(&this.pid, int64(os.Getpid()), 0)
+		atomic.CompareAndSwapInt64(&this.pid, this.pid, 0)
 	})
 }
 
@@ -346,6 +457,7 @@ loop:
 		}
 
 		if er.ID != int(this.pid) || er.Seq > int(this.seqnum) {
+			glog.Debugf("%d != %d, %d != %d", er.ID, this.pid, er.Seq, this.seqnum)
 			continue
 		}
 
@@ -396,11 +508,13 @@ func (this *Pinger) sender() {
 		this.quit()
 	}()
 
+	id := int(this.pid)
+
 	m := &icmp.Message{
 		Type: ipv4.ICMPTypeEcho,
 		Code: 0,
 		Body: &icmp.Echo{
-			ID:   int(this.pid),
+			ID:   id,
 			Seq:  this.seq(),
 			Data: this.payload,
 		},

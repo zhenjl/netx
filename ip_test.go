@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package net
+package ping
 
 import (
 	"net"
 	"testing"
 
-	"github.com/dataence/assert"
-	"github.com/dataence/glog"
+	"github.com/surgebase/assert"
+	"github.com/surgebase/glog"
 )
 
 type IPAdder interface {

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package net
+package ping
 
 import (
 	"os"
 	"testing"
 	"time"
 
-	"github.com/dataence/assert"
-	"github.com/dataence/glog"
+	"github.com/surgebase/assert"
+	"github.com/surgebase/glog"
 )
 
 func TestPingerAddIPs(t *testing.T) {

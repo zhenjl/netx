@@ -22,7 +22,7 @@
 // https://github.com/golang/net
 // https://github.com/golang/net/blob/master/LICENSE
 
-package net
+package ping
 
 import (
 	"bytes"
@@ -39,7 +39,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dataence/glog"
+	"github.com/surgebase/glog"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/internal/iana"
 	"golang.org/x/net/ipv4"

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ping
+package netx
 
 import (
 	"os"
 	"testing"
 	"time"
 
-	"github.com/surgebase/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/surgebase/glog"
 )
 
@@ -34,7 +34,7 @@ func TestPingerPing(t *testing.T) {
 	}
 
 	pr, err := Ping("127.0.0.1")
-	assert.NoError(t, true, err)
+	require.NoError(t, err)
 	glog.Debugf("%v", pr)
 }
 
@@ -52,8 +52,8 @@ func TestPingerStartOnce(t *testing.T) {
 	cnt := 0
 
 	res, err := pinger.Start()
-	assert.NoError(t, true, err)
-	assert.NotNil(t, true, res)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 
 	go func() {
 		for pr := range res {
@@ -65,10 +65,10 @@ func TestPingerStartOnce(t *testing.T) {
 
 	select {
 	case <-time.Tick(time.Duration(len(pinger.IPs())) * time.Second):
-		assert.Fail(t, true, "Test timed out")
+		require.FailNow(t, "Test timed out")
 
 	case <-done:
-		assert.Equal(t, true, len(pinger.IPs()), cnt)
+		require.Equal(t, len(pinger.IPs()), cnt)
 	}
 
 	pinger.Stop()
@@ -87,8 +87,8 @@ func TestPingerStartMultiple(t *testing.T) {
 		cnt := 0
 
 		res, err := pinger.Start()
-		assert.NoError(t, true, err)
-		assert.NotNil(t, true, res)
+		require.NoError(t, err)
+		require.NotNil(t, res)
 
 		go func() {
 			for pr := range res {
@@ -100,10 +100,10 @@ func TestPingerStartMultiple(t *testing.T) {
 
 		select {
 		case <-time.Tick(time.Duration(len(pinger.IPs())) * time.Second):
-			assert.Fail(t, true, "Test timed out")
+			require.FailNow(t, "Test timed out")
 
 		case <-done:
-			assert.Equal(t, true, len(pinger.IPs()), cnt)
+			require.Equal(t, len(pinger.IPs()), cnt)
 		}
 
 		pinger.Stop()
@@ -122,8 +122,8 @@ func TestPingerSetDF(t *testing.T) {
 	pinger.AddIPs([]string{"8.8.8.8"})
 
 	res, err := pinger.Start()
-	assert.NoError(t, true, err)
-	assert.NotNil(t, true, res)
+	require.NoError(t, err)
+	require.NotNil(t, res)
 
 	go func() {
 		for pr := range res {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ping
+package netx
 
 //   10.1.1.1      -> 10.1.1.1
 //   10.1.1,2.1    -> 10.1.1.1, 10.1.2.1

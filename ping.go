@@ -22,7 +22,7 @@
 // https://github.com/golang/net
 // https://github.com/golang/net/blob/master/LICENSE
 
-package ping
+package netx
 
 import (
 	"bytes"
@@ -452,7 +452,7 @@ loop:
 		// Echo Reply
 		er, ok := m.Body.(*icmp.Echo)
 		if !ok {
-			glog.Errorf("Error type asserting m.Body to *icmp.Echo")
+			glog.Errorf("Error type requireing m.Body to *icmp.Echo")
 			continue
 		}
 
@@ -653,7 +653,7 @@ func (this *Pinger) marshalMessage(m *icmp.Message, p []byte) ([]byte, error) {
 	if m.Body != nil && m.Body.Len() != 0 {
 		er, ok := m.Body.(*icmp.Echo)
 		if !ok {
-			return nil, fmt.Errorf("ping/marshalMessage: Error type asserting m.Body to *icmp.Echo")
+			return nil, fmt.Errorf("ping/marshalMessage: Error type requireing m.Body to *icmp.Echo")
 		}
 
 		p[4], p[5] = byte(er.ID>>8), byte(er.ID)

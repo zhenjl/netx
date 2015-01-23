@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ping
+package netx
 
 import (
 	"net"
 	"testing"
 
-	"github.com/surgebase/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/surgebase/glog"
 )
 
@@ -34,7 +34,7 @@ func TestIPList(t *testing.T) {
 
 func testAddIPs(t *testing.T, adder IPAdder) {
 	err := adder.AddIPs([]string{"10.1.1.1", "10.1.1.2", "10.1.1.3-4", "10.1.1.5,6,7"})
-	assert.NoError(t, true, err)
+	require.NoError(t, err)
 
 	m1 := make(map[[4]byte]struct{})
 	tmp := [4]byte{10, 1, 1, 1}
@@ -60,14 +60,14 @@ func testAddIPs(t *testing.T, adder IPAdder) {
 		m2[tmp] = struct{}{}
 	}
 
-	assert.Equal(t, true, m1, m2)
+	require.Equal(t, m1, m2)
 }
 
 func TestParseIPv4Success(t *testing.T) {
 	for i, ip := range ips {
 		glog.Debugf("Parsing %d %s", i, ip)
 		res, err := ParseIP(ip)
-		assert.NoError(t, true, err)
+		require.NoError(t, err)
 
 		m := make(map[[4]byte]bool)
 
@@ -77,20 +77,20 @@ func TestParseIPv4Success(t *testing.T) {
 			m[tmp] = true
 		}
 
-		assert.Equal(t, true, results[i], m)
+		require.Equal(t, results[i], m)
 	}
 }
 
 func TestParseIPv4Failure(t *testing.T) {
 	_, err := ParseIP("10.1.1.1,10.1.1.2")
-	assert.Error(t, true, err)
+	require.Error(t, err)
 
 	_, err = ParseIP("10.1.1.1.")
-	assert.Error(t, true, err)
+	require.Error(t, err)
 
 	_, err = ParseIP("10.1.1.a")
-	assert.Error(t, true, err)
+	require.Error(t, err)
 
 	_, err = ParseIP("10.1.1.256")
-	assert.Error(t, true, err)
+	require.Error(t, err)
 }

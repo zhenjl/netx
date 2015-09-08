@@ -41,17 +41,18 @@ import (
 
 	"github.com/surgebase/glog"
 	"golang.org/x/net/icmp"
-	"golang.org/x/net/internal/iana"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )
 
 const (
-	icmpHeaderSize  = 8
-	defaultInterval = 100 * time.Millisecond
-	defaultMaxRTT   = 100 * time.Millisecond
-	defaultTTL      = 32
-	defaultSize     = 8
+	icmpHeaderSize   = 8
+	defaultInterval  = 100 * time.Millisecond
+	defaultMaxRTT    = 100 * time.Millisecond
+	defaultTTL       = 32
+	defaultSize      = 8
+	ProtocolICMP     = 1
+	ProtocolIPv6ICMP = 58
 )
 
 // Ping sends ICMP ECHO_REQUEST to a single IP address, wait for the ECHO_REPLY,
@@ -433,7 +434,7 @@ loop:
 			break loop
 		}
 
-		m, err := icmp.ParseMessage(iana.ProtocolICMP, b)
+		m, err := icmp.ParseMessage(ProtocolICMP, b)
 		if err != nil {
 			// Hm...bad message?
 			continue
@@ -620,7 +621,7 @@ func (this *Pinger) sendMessage(m *icmp.Message, wh *ipv4.Header) error {
 // buffer will be allocated. The updated buffer, p or the new one, will be returned
 // and the length will be set to the length of the echo message.
 func (this *Pinger) marshalMessage(m *icmp.Message, p []byte) ([]byte, error) {
-	if m.Type.Protocol() == iana.ProtocolIPv6ICMP {
+	if m.Type.Protocol() == ProtocolIPv6ICMP {
 		return nil, fmt.Errorf("ping/marshalMessage: IPv6 not yet supported")
 	}
 

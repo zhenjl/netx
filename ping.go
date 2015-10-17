@@ -625,25 +625,27 @@ func (this *Pinger) marshalMessage(m *icmp.Message, p []byte) ([]byte, error) {
 		return nil, fmt.Errorf("ping/marshalMessage: IPv6 not yet supported")
 	}
 
+	var mtype, proto int
+	switch typ := m.Type.(type) {
+	case ipv4.ICMPType:
+		mtype = int(typ)
+		proto = ProtocolICMP
+	case ipv6.ICMPType:
+		mtype = int(typ)
+		proto = ProtocolIPv6ICMP
+	default:
+		return nil, syscall.EINVAL
+	}
+
 	// http://en.wikipedia.org/wiki/Ping_(networking_utility)
 	// 1 byte Type
 	// 1 byte Code
 	// 2 bytes checksum
-	total := 4 + m.Body.Len()
+	total := 4 + m.Body.Len(proto)
 	if cap(p) < total {
 		p = make([]byte, total)
 	}
 	p = p[0:total]
-
-	var mtype int
-	switch typ := m.Type.(type) {
-	case ipv4.ICMPType:
-		mtype = int(typ)
-	case ipv6.ICMPType:
-		mtype = int(typ)
-	default:
-		return nil, syscall.EINVAL
-	}
 
 	// p[0] is the Type
 	// p[1] is the Code
@@ -651,7 +653,7 @@ func (this *Pinger) marshalMessage(m *icmp.Message, p []byte) ([]byte, error) {
 	p[0], p[1], p[2], p[3] = byte(mtype), byte(m.Code), 0, 0
 
 	// Copy the echo message
-	if m.Body != nil && m.Body.Len() != 0 {
+	if m.Body != nil && m.Body.Len(proto) != 0 {
 		er, ok := m.Body.(*icmp.Echo)
 		if !ok {
 			return nil, fmt.Errorf("ping/marshalMessage: Error type requireing m.Body to *icmp.Echo")
